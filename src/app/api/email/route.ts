@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import { FormEmail } from '../../../email/emails/form-mail';
-import { EMAIL_RECIPIENTS, EMAIL_RECIPIENTS_DEV, EMAIL_SENDER } from '../../../constants';
+import { EMAIL_RECIPIENTS, EMAIL_SENDER } from '../../../constants';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,18 +11,18 @@ interface SendEmailParams {
     imageUrls: string[];
 }
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+
 export async function OPTIONS(request: Request) {
     console.log('📧 OPTIONS request received');
     return new Response(null, {
         status: 200,
-        headers: {
-
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-
-        },
+        headers: corsHeaders,
     });
 }
 
@@ -32,15 +32,21 @@ export async function POST(request: Request) {
     console.log('📧 Email data:', { senderName, type, data, imageUrls });
     const result = await sendEmail({ senderName, type, data, imageUrls });
     console.log('📧 Email result:', result);
-    return Response.json(result);
+
+    return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+        },
+    });
 }
 
 async function sendEmail({ senderName, type, data, imageUrls }: SendEmailParams) {
     try {
         const { data: emailData, error } = await resend.emails.send({
             from: EMAIL_SENDER,
-            // to: process.env.NODE_ENV === 'production' ? EMAIL_RECIPIENTS : EMAIL_RECIPIENTS_DEV,
-            to: EMAIL_RECIPIENTS_DEV,
+            to: EMAIL_RECIPIENTS,
             subject: ` ${type} - ${senderName}`,
             react: FormEmail({
                 senderName,
