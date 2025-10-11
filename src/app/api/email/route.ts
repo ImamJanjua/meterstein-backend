@@ -39,7 +39,8 @@ async function sendEmail({ senderName, type, data, imageUrls }: SendEmailParams)
     try {
         const { data: emailData, error } = await resend.emails.send({
             from: EMAIL_SENDER,
-            to: process.env.NODE_ENV === 'production' ? EMAIL_RECIPIENTS : EMAIL_RECIPIENTS_DEV,
+            // to: process.env.NODE_ENV === 'production' ? EMAIL_RECIPIENTS : EMAIL_RECIPIENTS_DEV,
+            to: EMAIL_RECIPIENTS_DEV,
             subject: ` ${type} - ${senderName}`,
             react: FormEmail({
                 senderName,
